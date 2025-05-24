@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CommunityVoice Admin Dashboard">
+  <title>CommunityVoice - Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #E6E9EF, #F5F6F8);
+      color: #333333;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    html.lang-hi body,
+    html.lang-hi input,
+    html.lang-hi button,
+    html.lang-hi table,
+    html.lang-hi select {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+    }
+
+    html.lang-kn body,
+    html.lang-kn input,
+    html.lang-kn button,
+    html.lang-kn table,
+    html.lang-kn select {
+      font-family: 'Noto Sans Kannada', sans-serif;
+    }
+
+    .language-switcher {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 200;
+    }
+
+    .language-switcher select {
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      color: #333333;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    html.lang-hi .language-switcher select {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+    }
+
+    html.lang-kn .language-switcher select {
+      font-family: 'Noto Sans Kannada', sans-serif;
+    }
+
+    .language-switcher select:focus {
+      border-color: #003087;
+      box-shadow: 0 0 4px rgba(0, 48, 135, 0.15);
+      outline: 2px solid #003087;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(5px);
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      z-index: 10;
+      animation: slideIn 1s ease-in-out;
+    }
+
+    @keyframes slideIn {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(0); }
+    }
+
+    .sidebar-logo {
+      font-size: 1.8rem;
+      color: #003087;
+      text-align: center;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 3px rgba(0, 48, 135, 0.2);
+      font-weight: 700;
+    }
+
+    .sidebar-logo span {
+      color: #A6192E;
+      text-shadow: 0 0 3px rgba(166, 25, 46, 0.2);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .sidebar-nav a {
+      color: #4A5568;
+      text-decoration: none;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active,
+    .sidebar-nav a:focus {
+      background: rgba(0, 48, 135, 0.1);
+      color: #003087;
+      text-shadow: 0 0 2px rgba(0, 48, 135, 0.2);
+      outline: 2px solid #003087;
+    }
+
+    .main-content {
+      flex: 1;
+      margin-left: 250px;
+      padding: 2rem;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      color: #003087;
+      text-shadow: 0 0 3px rgba(0, 48, 135, 0.2);
+      font-weight: 700;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #4A5568;
+      font-weight: 500;
+    }
+
+    .user-info i {
+      color: #003087;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover,
+    .stat-card:focus {
+      box-shadow: 0 0 8px rgba(0, 48, 135, 0.15);
+      transform: translateY(-3px);
+      outline: 2px solid #003087;
+    }
+
+    .stat-card h3 {
+      font-size: 1.1rem;
+      color: #003087;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 2px rgba(0, 48, 135, 0.2);
+      font-weight: 600;
+    }
+
+    .stat-card .value {
+      font-size: 1.8rem;
+      color: #333333;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .stat-card .change {
+      font-size: 0.9rem;
+      color: #4A5568;
+      font-weight: 500;
+    }
+
+    .stat-card .change.positive {
+      color: #003087;
+    }
+
+    .stat-card .change.negative {
+      color: #A6192E;
+    }
+
+    .trends-section {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .trends-section h2 {
+      font-size: 1.6rem;
+      color: #003087;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 2px rgba(0, 48, 135, 0.2);
+      font-weight: 700;
+    }
+
+    .trends-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .trends-tab {
+      background: none;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      color: #4A5568;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .trends-tab:hover,
+    .trends-tab.active,
+    .trends-tab:focus {
+      border-color: #003087;
+      color: #003087;
+      box-shadow: 0 0 4px rgba(0, 48, 135, 0.15);
+      outline: 2px solid #003087;
+    }
+
+    .trends-chart {
+      width: 100%;
+      max-height: 50vh;
+      min-height: 200px;
+      height: auto;
+    }
+
+    .feedback-section {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+
+    .feedback-section h2 {
+      font-size: 1.6rem;
+      color: #003087;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 2px rgba(0, 48, 135, 0.2);
+      font-weight: 700;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .filter-group {
+      position: relative;
+    }
+
+    .filter-group select,
+    .filter-group input,
+    .refresh-btn {
+      padding: 0.5rem 2rem 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      color: #333333;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    html.lang-hi .filter-group select,
+    html.lang-hi .filter-group input,
+    html.lang-hi .refresh-btn {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+    }
+
+    html.lang-kn .filter-group select,
+    html.lang-kn .filter-group input,
+    html.lang-kn .refresh-btn {
+      font-family: 'Noto Sans Kannada', sans-serif;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus,
+    .refresh-btn:hover,
+    .refresh-btn:focus {
+      border-color: #003087;
+      box-shadow: 0 0 4px rgba(0, 48, 135, 0.15);
+      outline: 2px solid #003087;
+    }
+
+    .refresh-btn {
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .filter-group select {
+      appearance: none;
+    }
+
+    .filter-group .select-arrow {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #003087;
+      pointer-events: none;
+    }
+
+    .feedback-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #333333;
+    }
+
+    .feedback-table th,
+    .feedback-table td {
+      padding: 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .feedback-table th {
+      font-size: 1rem;
+      color: #003087;
+      text-shadow: 0 0 2px rgba(0, 48, 135, 0.2);
+      font-weight: 600;
+    }
+
+    .feedback-table td {
+      font-size: 0.9rem;
+      color: #4A5568;
+      font-weight: 400;
+    }
+
+    .feedback-table tr:hover {
+      background: rgba(0, 48, 135, 0.05);
+    }
+
+    .feedback-table td.na {
+      color: #A6192E;
+      font-style: italic;
+    }
+
+    .feedback-category {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: rgba(0, 48, 135, 0.1);
+      color: #003087;
+    }
+
+    .status-message {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-weight: 500;
+    }
+
+    .status-message.show {
+      opacity: 1;
+    }
+
+    .status-message.info {
+      color: #003087;
+    }
+
+    .status-message.error {
+      color: #A6192E;
+    }
+
+    .new-feedback {
+      animation: highlight 2s ease-in-out;
+    }
+
+    @keyframes highlight {
+      0% { background: rgba(0, 48, 135, 0.2); }
+      100% { background: none; }
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .main-content {
+        margin-left: 200px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .feedback-table th,
+      .feedback-table td {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        padding: 1rem;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 1rem;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .trends-chart {
+        max-height: 40vh;
+        min-height: 150px;
+      }
+
+      .feedback-table {
+        font-size: 0.8rem;
+      }
+
+      .feedback-table th,
+      .feedback-table td {
+        padding: 0.5rem;
+      }
+
+      .language-switcher {
+        position: static;
+        margin: 1rem auto;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .stat-card .value {
+        font-size: 1.5rem;
+      }
+
+      .stat-card .change {
+        font-size: 0.8rem;
+      }
+
+      .trends-section h2,
+      .feedback-section h2 {
+        font-size: 1.3rem;
+      }
+
+      .filters {
+        flex-direction: column;
+      }
+
+      .feedback-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .trends-chart {
+        max-height: 30vh;
+        min-height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="language-switcher">
+    <select id="language-switcher" aria-label="Select Interface Language">
+      <option value="en">English</option>
+      <option value="hi">हिन्दी</option>
+      <option value="kn">ಕನ್ನಡ</option>
+    </select>
+  </div>
+
+  <div class="container">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="sidebar-logo">
+        <span data-translate="title">Community</span><span>Voice</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="active" aria-current="page"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> <span data-translate="dashboard">Dashboard</span></a>
+        <a href="#"><i class="fas fa-comment-alt" aria-hidden="true"></i> <span data-translate="feedbacks">Feedbacks</span></a>
+        <a href="#"><i class="fas fa-chart-line" aria-hidden="true"></i> <span data-translate="analytics">Analytics</span></a>
+        <a href="#"><i class="fas fa-users" aria-hidden="true"></i> <span data-translate="users">Users</span></a>
+        <a href="#"><i class="fas fa-cog" aria-hidden="true"></i> <span data-translate="settings">Settings</span></a>
+        <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> <span data-translate="logout">Logout</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1 data-translate="header_title">Feedback Dashboard</h1>
+        <div class="user-info">
+          <i class="fas fa-user-circle" aria-hidden="true"></i>
+          <span data-translate="admin_user">Admin User</span>
+        </div>
+      </header>
+
+      <section class="stats-grid" aria-label="Feedback statistics">
+        <div class="stat-card" tabindex="0">
+          <h3 data-translate="total_feedbacks">Total Feedbacks</h3>
+          <div class="value" id="totalFeedbacks">0</div>
+          <div class="change" id="totalFeedbacksChange">0% from last month</div>
+        </div>
+        <div class="stat-card" tabindex="0">
+          <h3 data-translate="resolved">Resolved</h3>
+          <div class="value" id="resolved">0</div>
+          <div class="change" id="resolvedChange">0% from last month</div>
+        </div>
+        <div class="stat-card" tabindex="0">
+          <h3 data-translate="pending">Pending</h3>
+          <div class="value" id="pending">0</div>
+          <div class="change" id="pendingChange">0% from last month</div>
+        </div>
+        <div class="stat-card" tabindex="0">
+          <h3 data-translate="unique_users">Unique Users</h3>
+          <div class="value" id="uniqueUsers">0</div>
+          <div class="change" id="uniqueUsersChange">0% from last month</div>
+        </div>
+      </section>
+
+      <section class="trends-section" aria-label="Feedback trends">
+        <h2 data-translate="trends_title">Feedback Trends</h2>
+        <div class="trends-tabs">
+          <button class="trends-tab active" onclick="updateChart('weekly')" aria-pressed="true" data-translate="weekly">Weekly</button>
+          <button class="trends-tab" onclick="updateChart('monthly')" aria-pressed="false" data-translate="monthly">Monthly</button>
+          <button class="trends-tab" onclick="updateChart('yearly')" aria-pressed="false" data-translate="yearly">Yearly</button>
+        </div>
+        <canvas class="trends-chart" id="trendsChart" role="img" aria-label="Line chart showing feedback trends"></canvas>
+      </section>
+
+      <section class="feedback-section" aria-label="Recent feedback">
+        <h2 data-translate="recent_feedbacks">Recent Feedbacks</h2>
+        <div class="filters">
+          <div class="filter-group">
+            <select id="languageFilter" aria-label="Filter by language">
+              <option value="" data-translate="all_languages">All Languages</option>
+              <option value="en">English</option>
+              <option value="kn">Kannada</option>
+              <option value="hi">Hindi</option>
+              <option value="ta">Tamil</option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow" aria-hidden="true"></i>
+          </div>
+          <div class="filter-group">
+            <input type="text" id="locationFilter" aria-label="Filter by location" data-translate-placeholder="location_filter">
+          </div>
+          <button class="refresh-btn" onclick="fetchFeedback()" aria-label="Refresh feedback"><i class="fas fa-sync-alt" aria-hidden="true"></i> <span data-translate="refresh">Refresh</span></button>
+        </div>
+        <table class="feedback-table" aria-label="Recent feedback table">
+          <thead>
+            <tr>
+              <th scope="col" data-translate="id_label">ID</th>
+              <th scope="col" data-translate="name_label">Name</th>
+              <th scope="col" data-translate="location_label">Location</th>
+              <th scope="col" data-translate="category_label">Category</th>
+              <th scope="col" data-translate="feedback_label">Original Feedback</th>
+              <th scope="col" data-translate="translated_label">Translated Feedback</th>
+              <th scope="col" data-translate="language_label">Language</th>
+              <th scope="col" data-translate="date_label">Date</th>
+            </tr>
+          </thead>
+          <tbody id="feedbackTableBody"></tbody>
+        </table>
+        <div class="status-message" id="status-msg" role="status" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Translation object
+    const translations = {
+      en: {
+        title: 'Community',
+        dashboard: 'Dashboard',
+        feedbacks: 'Feedbacks',
+        analytics: 'Analytics',
+        users: 'Users',
+        settings: 'Settings',
+        logout: 'Logout',
+        header_title: 'Feedback Dashboard',
+        admin_user: 'Admin User',
+        total_feedbacks: 'Total Feedbacks',
+        resolved: 'Resolved',
+        pending: 'Pending',
+        unique_users: 'Unique Users',
+        trends_title: 'Feedback Trends',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        yearly: 'Yearly',
+        recent_feedbacks: 'Recent Feedbacks',
+        all_languages: 'All Languages',
+        location_filter: 'Filter by Location',
+        refresh: 'Refresh',
+        id_label: 'ID',
+        name_label: 'Name',
+        location_label: 'Location',
+        category_label: 'Category',
+        feedback_label: 'Original Feedback',
+        translated_label: 'Translated Feedback',
+        language_label: 'Language',
+        date_label: 'Date',
+        status_loading: 'Loading feedback...',
+        status_error: 'Failed to load feedback. Please try again.',
+        status_no_data: 'No feedback found.',
+        status_new_feedback: 'New feedback received!',
+        na: 'N/A'
+      },
+      hi: {
+        title: 'सामुदायिक',
+        dashboard: 'डैशबोर्ड',
+        feedbacks: 'प्रतिक्रियाएँ',
+        analytics: 'विश्लेषण',
+        users: 'उपयोगकर्ता',
+        settings: 'सेटिंग्स',
+        logout: 'लॉगआउट',
+        header_title: 'प्रतिक्रिया डैशबोर्ड',
+        admin_user: 'प्रशासक उपयोगकर्ता',
+        total_feedbacks: 'कुल प्रतिक्रियाएँ',
+        resolved: 'हल की गई',
+        pending: 'लंबित',
+        unique_users: 'अद्वितीय उपयोगकर्ता',
+        trends_title: 'प्रतिक्रिया रुझान',
+        weekly: 'साप्ताहिक',
+        monthly: 'मासिक',
+        yearly: 'वार्षिक',
+        recent_feedbacks: 'हाल की प्रतिक्रियाएँ',
+        all_languages: 'सभी भाषाएँ',
+        location_filter: 'स्थान द्वारा फ़िल्टर करें',
+        refresh: 'ताज़ा करें',
+        id_label: 'आईडी',
+        name_label: 'नाम',
+        location_label: 'स्थान',
+        category_label: 'श्रेणी',
+        feedback_label: 'मूल प्रतिक्रिया',
+        translated_label: 'अनुवादित प्रतिक्रिया',
+        language_label: 'भाषा',
+        date_label: 'तारीख',
+        status_loading: 'प्रतिक्रिया लोड हो रही है...',
+        status_error: 'प्रतिक्रिया लोड करने में विफल। कृपया पुनः प्रयास करें।',
+        status_no_data: 'कोई प्रतिक्रिया नहीं मिली।',
+        status_new_feedback: 'नई प्रतिक्रिया प्राप्त हुई!',
+        na: 'उपलब्ध नहीं'
+      },
+      kn: {
+        title: 'ಸಮುದಾಯ',
+        dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+        feedbacks: 'ಪ್ರತಿಕ್ರಿಯೆಗಳು',
+        analytics: 'ವಿಶ್ಲೇಷಣೆ',
+        users: 'ಬಳಕೆದಾರರು',
+        settings: 'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+        logout: 'ಲಾಗ್‌ಔಟ್',
+        header_title: 'ಪ್ರತಿಕ್ರಿಯೆ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+        admin_user: 'ನಿರ್ವಾಹಕ ಬಳಕೆದಾರ',
+        total_feedbacks: 'ಒಟ್ಟು ಪ್ರತಿಕ್ರಿಯೆಗಳು',
+        resolved: 'ಪರಿಹರಿಸಲಾಗಿದೆ',
+        pending: 'ಬಾಕಿಯಿವೆ',
+        unique_users: 'ವಿಶಿಷ್ಟ ಬಳಕೆದಾರರು',
+        trends_title: 'ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರವೃತ್ತಿಗಳು',
+        weekly: 'ಸಾಪ್ತಾಹಿಕ',
+        monthly: 'ಮಾಸಿಕ',
+        yearly: 'ವಾರ್ಷಿಕ',
+        recent_feedbacks: 'ಇತ್ತೀಚಿನ ಪ್ರತಿಕ್ರಿಯೆಗಳು',
+        all_languages: 'ಎಲ್ಲ ಭಾಷೆಗಳು',
+        location_filter: 'ಸ್ಥಳದಿಂದ ಫಿಲ್ಟರ್ ಮಾಡಿ',
+        refresh: 'ರಿಫ್ರೆಶ್',
+        id_label: 'ಐಡಿ',
+        name_label: 'ಹೆಸರು',
+        location_label: 'ಸ್ಥಳ',
+        category_label: 'ವರ್ಗ',
+        feedback_label: 'ಮೂಲ ಪ್ರತಿಕ್ರಿಯೆ',
+        translated_label: 'ಅನುವಾದಿತ ಪ್ರತಿಕ್ರಿಯೆ',
+        language_label: 'ಭಾಷೆ',
+        date_label: 'ದಿನಾಂಕ',
+        status_loading: 'ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...',
+        status_error: 'ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ।',
+        status_no_data: 'ಯಾವುದೇ ಪ್ರತಿಕ್ರಿಯೆ ಕಂಡುಬಂದಿಲ್ಲ।',
+        status_new_feedback: 'ಹೊಸ ಪ್ರತಿಕ್ರಿಯೆ ಸ್ವೀಕರಿಸಲಾಗಿದೆ!',
+        na: 'ಲಭ್ಯವಿಲ್ಲ'
+      }
+    };
+
+    // Initialize elements
+    const languageSwitcher = document.getElementById('language-switcher');
+    const html = document.documentElement;
+    const statusMsg = document.getElementById('status-msg');
+    let chart;
+    let trendsData = { weekly: [], monthly: [], yearly: [] };
+    let allFeedbacks = [];
+    let socket;
+    let currentChartType = 'weekly';
+
+    // Current date and time for filtering (May 24, 2025, 11:20 PM IST)
+    const currentDate = new Date('2025-05-24T23:20:00+05:30');
+
+    // Load saved UI language or default to English
+    const savedUILanguage = localStorage.getItem('uiLanguage') || 'en';
+    languageSwitcher.value = savedUILanguage;
+    html.setAttribute('lang', savedUILanguage);
+    html.classList.add(`lang-${savedUILanguage}`);
+
+    // Translate page
+    function translatePage(lang) {
+      document.querySelectorAll('[data-translate]').forEach(element => {
+        const key = element.getAttribute('data-translate');
+        if (translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+
+      document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-translate-placeholder');
+        if (translations[lang][key]) {
+          element.placeholder = translations[lang][key];
+        }
+      });
+
+      document.querySelectorAll('#languageFilter option').forEach(option => {
+        const key = option.getAttribute('data-translate');
+        if (key && translations[lang][key]) {
+          option.textContent = translations[lang][key];
+        }
+      });
+
+      if (statusMsg.classList.contains('show')) {
+        statusMsg.textContent = translations[lang].status_no_data;
+      }
+    }
+
+    // Initial translation
+    translatePage(savedUILanguage);
+
+    // Language change handler
+    languageSwitcher.addEventListener('change', () => {
+      const newLang = languageSwitcher.value;
+      localStorage.setItem('uiLanguage', newLang);
+      html.setAttribute('lang', newLang);
+      html.classList.remove('lang-en', 'lang-hi', 'lang-kn');
+      html.classList.add(`lang-${newLang}`);
+      translatePage(newLang);
+      showStatus(translations[newLang].status_loading, 'info');
+      fetchFeedback();
+    });
+
+    // Status message
+    function showStatus(message, type) {
+      statusMsg.textContent = message;
+      statusMsg.classList.remove('info', 'error');
+      statusMsg.classList.add('show', type);
+      setTimeout(() => statusMsg.classList.remove('show', type), 3000);
+    }
+
+    // HTML escape function
+    function escapeHtml(unsafe) {
+      if (!unsafe || unsafe === 'undefined') return translations[savedUILanguage].na;
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Calculate stats dynamically from allFeedbacks
+    function updateStats() {
+      const lang = languageSwitcher.value;
+
+      const filteredFeedbacks = allFeedbacks.filter(f => {
+        const feedbackDate = new Date(f.date_submitted);
+        return feedbackDate <= currentDate;
+      });
+
+      const totalFeedbacks = filteredFeedbacks.length;
+      const resolved = filteredFeedbacks.filter(f => f.status === 'resolved').length;
+      const pending = filteredFeedbacks.filter(f => f.status === 'pending').length;
+      const uniqueUsers = [...new Set(filteredFeedbacks.map(f => f.userId))].length;
+
+      const lastMonthDate = new Date(currentDate);
+      lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+      const lastMonthFeedbacks = allFeedbacks.filter(f => {
+        const feedbackDate = new Date(f.date_submitted);
+        return feedbackDate <= lastMonthDate;
+      });
+
+      const lastMonthTotal = lastMonthFeedbacks.length;
+      const lastMonthResolved = lastMonthFeedbacks.filter(f => f.status === 'resolved').length;
+      const lastMonthPending = lastMonthFeedbacks.filter(f => f.status === 'pending').length;
+      const lastMonthUniqueUsers = [...new Set(lastMonthFeedbacks.map(f => f.userId))].length;
+
+      const totalFeedbacksChange = lastMonthTotal ? ((totalFeedbacks - lastMonthTotal) / lastMonthTotal * 100).toFixed(1) : 0;
+      const resolvedChange = lastMonthResolved ? ((resolved - lastMonthResolved) / lastMonthResolved * 100).toFixed(1) : 0;
+      const pendingChange = lastMonthPending ? ((pending - lastMonthPending) / lastMonthPending * 100).toFixed(1) : 0;
+      const uniqueUsersChange = lastMonthUniqueUsers ? ((uniqueUsers - lastMonthUniqueUsers) / lastMonthUniqueUsers * 100).toFixed(1) : 0;
+
+      document.getElementById('totalFeedbacks').textContent = totalFeedbacks.toLocaleString();
+      document.getElementById('resolved').textContent = resolved.toLocaleString();
+      document.getElementById('pending').textContent = pending.toLocaleString();
+      document.getElementById('uniqueUsers').textContent = uniqueUsers.toLocaleString();
+
+      updateChange('totalFeedbacksChange', totalFeedbacksChange);
+      updateChange('resolvedChange', resolvedChange);
+      updateChange('pendingChange', pendingChange);
+      updateChange('uniqueUsersChange', uniqueUsersChange);
+    }
+
+    function updateChange(elementId, change) {
+      const element = document.getElementById(elementId);
+      element.textContent = `${Math.abs(change)}% from last month`;
+      element.classList.remove('positive', 'negative');
+      element.classList.add(change >= 0 ? 'positive' : 'negative');
+    }
+
+    async function fetchFeedback() {
+      const lang = languageSwitcher.value;
+      showStatus(translations[lang].status_loading, 'info');
+      try {
+        const res = await fetch('http://localhost:5000/api/v1/feedback');
+        const data = await res.json();
+        if (res.ok) {
+          allFeedbacks = data.filter(f => {
+            const feedbackDate = new Date(f.date_submitted);
+            return feedbackDate <= currentDate;
+          });
+          console.log('Initial feedbacks up to May 24, 2025, 11:20 PM IST:', allFeedbacks);
+          if (allFeedbacks.length === 0) {
+            showStatus(translations[lang].status_no_data, 'info');
+          }
+          updateStats();
+          filterFeedback();
+          fetchTrends();
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (error) {
+        console.error('Error fetching feedback:', error);
+        showStatus(translations[lang].status_error, 'error');
+      }
+    }
+
+    function filterFeedback() {
+      const languageFilter = document.getElementById('languageFilter').value;
+      const locationFilter = document.getElementById('locationFilter').value.toLowerCase();
+      const lang = languageSwitcher.value;
+
+      const filteredFeedbacks = allFeedbacks.filter(feedback => {
+        const matchesLanguage = !languageFilter || (feedback.language && feedback.language === languageFilter);
+        const matchesLocation = !locationFilter || (feedback.location && feedback.location.toLowerCase().includes(locationFilter));
+        return matchesLanguage && matchesLocation;
+      });
+
+      console.log('Filtered feedbacks:', filteredFeedbacks);
+
+      if (filteredFeedbacks.length === 0) {
+        showStatus(translations[lang].status_no_data, 'info');
+      }
+
+      renderFeedback(filteredFeedbacks);
+    }
+
+    function renderFeedback(feedbacks, highlightNew = false) {
+      const tbody = document.getElementById('feedbackTableBody');
+      const lang = languageSwitcher.value;
+      tbody.innerHTML = '';
+
+      if (feedbacks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="na">${translations[lang].na}</td></tr>`;
+        return;
+      }
+
+      feedbacks.forEach(feedback => {
+        const row = document.createElement('tr');
+        if (highlightNew && feedback.isNew) {
+          row.classList.add('new-feedback');
+          delete feedback.isNew;
+        }
+        row.innerHTML = `
+          <td>${feedback.id || translations[lang].na}</td>
+          <td>${feedback.fullName ? escapeHtml(feedback.fullName) : translations[lang].na}</td>
+          <td>${feedback.location ? escapeHtml(feedback.location) : translations[lang].na}</td>
+          <td><span class="feedback-category">${feedback.category ? escapeHtml(feedback.category) : translations[lang].na}</span></td>
+          <td>${feedback.feedback ? escapeHtml(feedback.feedback) : translations[lang].na}</td>
+          <td>${feedback.text_translated ? escapeHtml(feedback.text_translated) : translations[lang].na}</td>
+          <td>${feedback.language ? escapeHtml(feedback.language.toUpperCase()) : translations[lang].na}</td>
+          <td>${feedback.date_submitted ? formatDate(feedback.date_submitted) : translations[lang].na}</td>
+        `;
+        tbody.appendChild(row);
+      });
+      console.log('Rendered feedbacks:', feedbacks);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return translations[savedUILanguage].na;
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    }
+
+    async function fetchTrends() {
+      try {
+        const res = await fetch('http://localhost:5000/api/v1/trends');
+        const data = await res.json();
+        if (res.ok) {
+          trendsData = { weekly: [], monthly: [], yearly: [] };
+
+          allFeedbacks.forEach(feedback => {
+            const date = new Date(feedback.date_submitted);
+            if (date > currentDate) return;
+
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            const weekKey = weekStart.toLocaleString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+            const weekEntry = trendsData.weekly.find(item => item.date === weekKey);
+            if (weekEntry) {
+              weekEntry.count += 1;
+            } else {
+              trendsData.weekly.push({ date: weekKey, count: 1 });
+            }
+
+            const monthKey = date.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
+            const monthEntry = trendsData.monthly.find(item => item.date === monthKey);
+            if (monthEntry) {
+              monthEntry.count += 1;
+            } else {
+              trendsData.monthly.push({ date: monthKey, count: 1 });
+            }
+
+            const yearKey = date.getFullYear().toString();
+            const yearEntry = trendsData.yearly.find(item => item.date === yearKey);
+            if (yearEntry) {
+              yearEntry.count += 1;
+            } else {
+              trendsData.yearly.push({ date: yearKey, count: 1 });
+            }
+          });
+
+          trendsData.weekly.sort((a, b) => new Date(a.date) - new Date(b.date));
+          trendsData.monthly.sort((a, b) => new Date(a.date) - new Date(b.date));
+          trendsData.yearly.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          console.log('Trends data:', trendsData);
+          updateChart(currentChartType);
+        }
+      } catch (error) {
+        console.error('Error fetching trends:', error);
+        showStatus(translations[savedUILanguage].status_error, 'error');
+      }
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('trendsChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: translations[savedUILanguage].trends_title,
+            data: [],
+            borderColor: '#003087',
+            backgroundColor: 'rgba(0, 48, 135, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { borderColor: '#003087', color: 'rgba(0, 0, 0, 0.05)' },
+              ticks: { color: '#4A5568' }
+            },
+            y: {
+              grid: { borderColor: '#003087', color: 'rgba(0, 0, 0, 0.05)' },
+              ticks: { color: '#4A5568' },
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: { labels: { color: '#333333' } }
+          }
+        }
+      });
+    }
+
+    function updateChart(type) {
+      currentChartType = type;
+      const tabs = document.querySelectorAll('.trends-tab');
+      tabs.forEach(tab => {
+        tab.classList.remove('active');
+        tab.setAttribute('aria-pressed', 'false');
+      });
+      const activeTab = document.querySelector(`.trends-tab[onclick="updateChart('${type}')"]`);
+      activeTab.classList.add('active');
+      activeTab.setAttribute('aria-pressed', 'true');
+
+      const data = trendsData[type] || [];
+      
+      chart.data.labels = data.map(item => item.date);
+      chart.data.datasets[0].data = data.map(item => item.count);
+      chart.data.datasets[0].label = translations[languageSwitcher.value].trends_title;
+      
+      chart.update();
+    }
+
+    function updateTrendsData(newFeedback) {
+      const date = new Date(newFeedback.date_submitted);
+      if (date > currentDate) return;
+
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      const weekKey = weekStart.toLocaleString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+      const weekEntry = trendsData.weekly.find(item => item.date === weekKey);
+      if (weekEntry) {
+        weekEntry.count += 1;
+      } else {
+        trendsData.weekly.push({ date: weekKey, count: 1 });
+        trendsData.weekly.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      const monthKey = date.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
+      const monthEntry = trendsData.monthly.find(item => item.date === monthKey);
+      if (monthEntry) {
+        monthEntry.count += 1;
+      } else {
+        trendsData.monthly.push({ date: monthKey, count: 1 });
+        trendsData.monthly.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      const yearKey = date.getFullYear().toString();
+      const yearEntry = trendsData.yearly.find(item => item.date === yearKey);
+      if (yearEntry) {
+        yearEntry.count += 1;
+      } else {
+        trendsData.yearly.push({ date: yearKey, count: 1 });
+        trendsData.yearly.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      updateChart(currentChartType);
+      console.log('Updated trends data after new feedback:', trendsData);
+    }
+
+    // Simplified feedback validation
+    function validateFeedback(feedback) {
+      if (!feedback || typeof feedback !== 'object') {
+        console.error('Invalid feedback: Feedback is not an object', feedback);
+        return false;
+      }
+      if (!feedback.id || !feedback.date_submitted) {
+        console.error('Invalid feedback: Missing required fields (id, date_submitted)', feedback);
+        return false;
+      }
+      return true;
+    }
+
+    // WebSocket for real-time updates
+    function initWebSocket() {
+      console.log('Attempting to connect to WebSocket at ws://localhost:5000/ws');
+      socket = new WebSocket('ws://localhost:5000/ws');
+
+      socket.onopen = () => {
+        console.log('WebSocket connection established successfully');
+        showStatus('Real-time updates enabled', 'info');
+      };
+
+      socket.onmessage = (event) => {
+        console.log('Raw WebSocket message received:', event.data);
+        try {
+          const message = JSON.parse(event.data);
+          console.log('Parsed WebSocket message:', message);
+
+          // Check if the message is a status message or a new feedback
+          if (message.status) {
+            console.log('Received status message:', message);
+            return;
+          }
+
+          const newFeedback = message;
+          if (!validateFeedback(newFeedback)) {
+            console.error('Skipping invalid feedback');
+            return;
+          }
+
+          const feedbackDate = new Date(newFeedback.date_submitted);
+          console.log('New feedback date:', feedbackDate.toISOString(), 'Current date:', currentDate.toISOString());
+
+          if (feedbackDate > currentDate) {
+            console.log('Feedback date is in the future, skipping:', newFeedback);
+            return;
+          }
+
+          newFeedback.isNew = true;
+          allFeedbacks.unshift(newFeedback);
+          console.log('Added new feedback to allFeedbacks:', newFeedback);
+          console.log('Updated allFeedbacks:', allFeedbacks);
+
+          updateStats();
+          filterFeedback();
+          updateTrendsData(newFeedback);
+          showStatus(translations[languageSwitcher.value].status_new_feedback, 'info');
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+          showStatus(translations[languageSwitcher.value].status_error, 'error');
+        }
+      };
+
+      socket.onclose = () => {
+        console.log('WebSocket connection closed. Attempting to reconnect...');
+        showStatus('Real-time updates disconnected. Reconnecting...', 'error');
+        setTimeout(initWebSocket, 5000);
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket error occurred:', error);
+        showStatus(translations[languageSwitcher.value].status_error, 'error');
+      };
+    }
+
+    // Event listeners
+    document.getElementById('languageFilter').addEventListener('change', filterFeedback);
+    document.getElementById('locationFilter').addEventListener('input', filterFeedback);
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (socket) socket.close();
+      localStorage.removeItem('uiLanguage');
+      localStorage.removeItem('session');
+      window.location.href = 'login.html';
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchFeedback();
+      initChart();
+      initWebSocket();
+    });
+  </script>
+</body>
+</html>
